@@ -9,9 +9,6 @@ pipeline {
     }
 
     environment {
-        // Dynamic & Immutable Pipeline Tagging
-        GIT_SHA = ""
-        IMAGE_TAG = ""
         BRANCH_NAME = "${env.BRANCH_NAME ?: 'main'}"
         DOCKER_REGISTRY = "docker.io"
         DOCKERHUB_BACKEND_REPO = "kalanalakshan123/taskflow-backend"
@@ -30,9 +27,14 @@ pipeline {
             steps {
                 script {
                     checkout scm
-                    def fullCommit = env.GIT_COMMIT ?: sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
-                    env.GIT_SHA = fullCommit.take(7)
-                    env.IMAGE_TAG = "${env.GIT_SHA}-${env.BUILD_NUMBER}"
+                    def commitSha = ""
+                    try {
+                        commitSha = sh(script: 'git rev-parse --short=7 HEAD', returnStdout: true).trim()
+                    } catch (Exception e) {
+                        commitSha = (env.GIT_COMMIT ?: "unknown").take(7)
+                    }
+                    env.GIT_SHA = commitSha
+                    env.IMAGE_TAG = "${commitSha}-${env.BUILD_NUMBER}"
 
                     echo "=================================================="
                     echo "TASKFLOW CI/CD PIPELINE"
@@ -263,7 +265,7 @@ pipeline {
         // =====================================================================
         stage('Docker Build') {
             steps {
-                echo "Building Docker container images with Git SHA tag: ${IMAGE_TAG}..."
+                echo "Building Docker container images with Git SHA tag: ${env.IMAGE_TAG}..."
                 sh '''
                     docker build -t taskflow-backend:${IMAGE_TAG} -t taskflow-backend:latest ./backend
                     docker build -t taskflow-frontend:${IMAGE_TAG} -t taskflow-frontend:latest ./frontend
