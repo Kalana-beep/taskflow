@@ -17,13 +17,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onNewTask, systemHealthy = true 
             <CheckSquare className="w-5 h-5" />
           </div>
           <div>
-            <div className="flex items-center space-x-2">
-              <span className="font-bold text-lg text-slate-900 tracking-tight">TaskFlow</span>
-              <span className="px-2 py-0.5 text-xs font-medium bg-blue-50 text-blue-700 rounded-full border border-blue-200/60">
-                v0.1.0
-              </span>
-            </div>
-            <p className="text-xs text-slate-500 hidden sm:block">Modern Task Management & DevOps Pipeline</p>
+            <span className="font-bold text-lg text-slate-900 tracking-tight">TaskFlow</span>
           </div>
         </div>
 

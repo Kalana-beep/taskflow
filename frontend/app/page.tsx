@@ -196,9 +196,6 @@ export default function Dashboard() {
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
               Task Dashboard
             </h1>
-            <p className="text-slate-500 text-sm mt-1">
-              Organize, monitor, and deliver tasks with automated DevOps pipeline verification.
-            </p>
           </div>
           <button
             onClick={() => {

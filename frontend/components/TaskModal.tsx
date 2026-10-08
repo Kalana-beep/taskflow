@@ -102,7 +102,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
               data-testid="modal-title-input"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g., Implement Docker Healthchecks"
+              placeholder="e.g., Complete research proposal"
               maxLength={255}
               required
               className="w-full px-3.5 py-2 text-sm bg-slate-50 focus:bg-white rounded-lg border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all placeholder:text-slate-400"
@@ -118,7 +118,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
-              placeholder="Provide background, checklist or acceptance criteria..."
+              placeholder="Add a short description for this task..."
               className="w-full px-3.5 py-2 text-sm bg-slate-50 focus:bg-white rounded-lg border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all placeholder:text-slate-400 resize-none"
             />
           </div>
