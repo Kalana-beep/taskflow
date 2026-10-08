@@ -10,8 +10,8 @@ pipeline {
 
     environment {
         // Dynamic & Immutable Pipeline Tagging
-        GIT_SHA = "f4a8143"
-        IMAGE_TAG = "f4a8143-${BUILD_NUMBER}"
+        GIT_SHA = ""
+        IMAGE_TAG = ""
         BRANCH_NAME = "${env.BRANCH_NAME ?: 'main'}"
         DOCKER_REGISTRY = "docker.io"
         DOCKERHUB_BACKEND_REPO = "kalanalakshan123/taskflow-backend"
@@ -29,18 +29,10 @@ pipeline {
         stage('Checkout') {
             steps {
                 script {
-                    try {
-                        checkout scm
-                    } catch (Exception e) {
-                        echo "SCM checkout fallback: ${e.message}"
-                    }
-
-                    sh '''
-                        if [ -d "/workspace" ]; then
-                            echo "Populating workspace from /workspace mount (excluding heavy caches)..."
-                            tar -C /workspace --exclude=node_modules --exclude=.venv --exclude=.next -cf - . | tar -xf -
-                        fi
-                    '''
+                    checkout scm
+                    def fullCommit = env.GIT_COMMIT ?: sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
+                    env.GIT_SHA = fullCommit.take(7)
+                    env.IMAGE_TAG = "${env.GIT_SHA}-${env.BUILD_NUMBER}"
 
                     echo "=================================================="
                     echo "TASKFLOW CI/CD PIPELINE"
@@ -179,7 +171,7 @@ pipeline {
                     pip-audit -r backend/requirements.txt || echo "pip-audit completed with warnings"
 
                     cd frontend
-                    npm audit --audit-level=high || echo "npm audit completed with findings"
+                    npm audit --audit-level=high
                 '''
             }
         }

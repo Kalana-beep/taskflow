@@ -1,7 +1,10 @@
 import jenkins.model.Jenkins
 import org.jenkinsci.plugins.workflow.job.WorkflowJob
-import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition
-import java.io.File
+import org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition
+import hudson.plugins.git.GitSCM
+import hudson.plugins.git.UserRemoteConfig
+import hudson.plugins.git.BranchSpec
+import java.util.Collections
 
 def jenkins = Jenkins.getInstance()
 def jobName = "TaskFlow-CI-CD"
@@ -12,12 +15,20 @@ if (job == null) {
     println("--> [INIT] Created project ${jobName}")
 }
 
-File jf = new File("/workspace/Jenkinsfile")
-if (jf.exists()) {
-    def definition = new CpsFlowDefinition(jf.text, true)
-    job.setDefinition(definition)
-    job.save()
-    println("--> [INIT] Loaded Jenkinsfile from /workspace/Jenkinsfile into ${jobName}")
-} else {
-    println("--> [INIT] /workspace/Jenkinsfile not found yet.")
-}
+def repoUrl = "https://github.com/Kalana-beep/taskflow.git"
+def branchSpec = new BranchSpec("*/main")
+def remoteConfig = new UserRemoteConfig(repoUrl, null, null, null)
+def scm = new GitSCM(
+    Collections.singletonList(remoteConfig),
+    Collections.singletonList(branchSpec),
+    false,
+    Collections.emptyList(),
+    null,
+    null,
+    Collections.emptyList()
+)
+def definition = new CpsScmFlowDefinition(scm, "Jenkinsfile")
+definition.setLightweight(true)
+job.setDefinition(definition)
+job.save()
+println("--> [INIT] Configured ${jobName} from SCM: ${repoUrl}")
