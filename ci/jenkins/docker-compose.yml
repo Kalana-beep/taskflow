@@ -1,0 +1,35 @@
+# ==============================================================================
+# TaskFlow Jenkins Local Orchestration
+# ==============================================================================
+
+services:
+  jenkins:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: taskflow-jenkins:latest
+    container_name: taskflow-jenkins
+    restart: unless-stopped
+    user: root # Needed for direct access to host docker socket across platforms
+    ports:
+      - "${JENKINS_PORT:-8088}:8080"
+      - "50000:50000"
+    environment:
+      - JENKINS_OPTS=--httpPort=8080
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false
+    volumes:
+      - jenkins_data:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ../..:/workspace:ro
+    networks:
+      - jenkins-net
+
+volumes:
+  jenkins_data:
+    name: taskflow_jenkins_data
+
+networks:
+  jenkins-net:
+    name: taskflow_jenkins_net
+    driver: bridge

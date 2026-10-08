@@ -1,51 +1,31 @@
-version: '3.8'
+# ==============================================================================
+# TaskFlow - Docker Compose Multi-Container Orchestration
+# ==============================================================================
 
-# ==============================================================================
-# ApexStore - Docker Compose Multi-Container Orchestration
-# ==============================================================================
+name: taskflow
 
 services:
   # ----------------------------------------------------------------------------
-  # PostgreSQL 16 - Relational Primary Database
+  # PostgreSQL 16 Relational Database
   # ----------------------------------------------------------------------------
   postgres:
     image: postgres:16-alpine
-    container_name: apexstore-postgres
+    container_name: taskflow-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-apex_user}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-apex_password}
-      POSTGRES_DB: ${POSTGRES_DB:-apex_ecommerce}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-taskflow_db}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - taskflow_postgres_data:/var/lib/postgresql/data
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     networks:
-      - apex-network
+      - taskflow-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-taskflow_db}"]
       interval: 5s
       timeout: 5s
-      retries: 5
-
-  # ----------------------------------------------------------------------------
-  # Redis 7 - In-Memory Cache
-  # ----------------------------------------------------------------------------
-  redis:
-    image: redis:7-alpine
-    container_name: apexstore-redis
-    restart: unless-stopped
-    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
-    volumes:
-      - redis_data:/data
-    ports:
-      - "${REDIS_PORT:-6379}:6379"
-    networks:
-      - apex-network
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 3s
       retries: 5
 
   # ----------------------------------------------------------------------------
@@ -55,53 +35,48 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    image: ${BACKEND_IMAGE:-apexstore-backend:latest}
-    container_name: apexstore-backend
+    image: ${BACKEND_IMAGE:-taskflow-backend:latest}
+    container_name: taskflow-backend
     restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
-        condition: service_healthy
     environment:
       - ENVIRONMENT=${ENVIRONMENT:-production}
-      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-apex_user}:${POSTGRES_PASSWORD:-apex_password}@postgres:5432/${POSTGRES_DB:-apex_ecommerce}
-      - REDIS_URL=redis://redis:6379/0
-      - SECRET_KEY=${SECRET_KEY:-placeholder_jwt_secret_key_minimum_32_characters_random}
-      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-60}
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-taskflow_db}
       - ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,http://frontend:3000
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     networks:
-      - apex-network
+      - taskflow-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
-      interval: 10s
-      timeout: 5s
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 5s
+      timeout: 3s
       retries: 5
 
   # ----------------------------------------------------------------------------
-  # Next.js Frontend Service
+  # Next.js Frontend Dashboard Service
   # ----------------------------------------------------------------------------
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    image: ${FRONTEND_IMAGE:-apexstore-frontend:latest}
-    container_name: apexstore-frontend
+    image: ${FRONTEND_IMAGE:-taskflow-frontend:latest}
+    container_name: taskflow-frontend
     restart: unless-stopped
     depends_on:
       backend:
         condition: service_healthy
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000/api/v1}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000}
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
     networks:
-      - apex-network
+      - taskflow-network
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:3000 || exit 1"]
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:3000 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -110,15 +85,13 @@ services:
 # Persistent Storage Volumes
 # ------------------------------------------------------------------------------
 volumes:
-  postgres_data:
-    name: apexstore_postgres_data
-  redis_data:
-    name: apexstore_redis_data
+  taskflow_postgres_data:
+    name: taskflow_postgres_data
 
 # ------------------------------------------------------------------------------
 # Dedicated Internal Bridge Network
 # ------------------------------------------------------------------------------
 networks:
-  apex-network:
-    name: apexstore_network
+  taskflow-network:
+    name: taskflow_network
     driver: bridge

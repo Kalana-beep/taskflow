@@ -1,0 +1,64 @@
+# ==============================================================================
+# TaskFlow - CI / Integration Test Orchestration
+# ==============================================================================
+# Isolated ephemeral test environment for CI pipeline test runs.
+# Execution:
+#   docker compose -f docker-compose.ci.yml up -d
+#   docker compose -f docker-compose.ci.yml down -v
+# ==============================================================================
+
+name: taskflow-ci
+
+services:
+  postgres-ci:
+    image: postgres:16-alpine
+    container_name: taskflow-ci-postgres
+    restart: "no"
+    environment:
+      POSTGRES_USER: postgres_ci
+      POSTGRES_PASSWORD: postgres_ci_password
+      POSTGRES_DB: taskflow_ci_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - taskflow_ci_postgres_data:/var/lib/postgresql/data
+    networks:
+      - taskflow-ci-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres_ci -d taskflow_ci_db"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+  backend-ci:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: taskflow-backend:ci
+    container_name: taskflow-ci-backend
+    restart: "no"
+    depends_on:
+      postgres-ci:
+        condition: service_healthy
+    environment:
+      - ENVIRONMENT=testing
+      - DATABASE_URL=postgresql+asyncpg://postgres_ci:postgres_ci_password@postgres-ci:5432/taskflow_ci_db
+      - ALLOWED_ORIGINS=*
+    ports:
+      - "8001:8000"
+    networks:
+      - taskflow-ci-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  taskflow_ci_postgres_data:
+    name: taskflow_ci_postgres_data
+
+networks:
+  taskflow-ci-network:
+    name: taskflow_ci_network
+    driver: bridge

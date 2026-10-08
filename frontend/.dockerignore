@@ -1,0 +1,19 @@
+# Frontend Docker Build Context Exclusion
+node_modules
+.next
+coverage
+.git
+.gitignore
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.env
+.env.*
+!.env.example
+.vscode
+.idea
+tests
+vitest.config.ts
+*.tsbuildinfo
+Dockerfile
+README.md

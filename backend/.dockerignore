@@ -1,0 +1,25 @@
+# Backend Docker Build Context Exclusion
+.venv
+venv
+env
+__pycache__
+*__pycache__*
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache
+.coverage
+htmlcov
+coverage.xml
+.ruff_cache
+.mypy_cache
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+.vscode
+.idea
+tests
+Dockerfile
+README.md

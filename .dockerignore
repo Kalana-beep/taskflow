@@ -1,0 +1,25 @@
+# Root Docker Build Context Exclusion
+node_modules
+frontend/node_modules
+frontend/.next
+frontend/coverage
+backend/.venv
+backend/__pycache__
+backend/.pytest_cache
+backend/.coverage
+backend/htmlcov
+backend/coverage.xml
+backend/.ruff_cache
+.venv
+__pycache__
+.pytest_cache
+.coverage
+htmlcov
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+.vscode
+.idea
+ci/jenkins/jenkins_home

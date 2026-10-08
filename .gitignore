@@ -1,5 +1,5 @@
 # ==============================================================================
-# ApexStore - Git Ignore Configuration
+# TaskFlow - Git Ignore Configuration
 # ==============================================================================
 
 # Operating System Files
@@ -95,13 +95,17 @@ htmlcov/
 coverage.xml
 .ruff_cache/
 .mypy_cache/
+coverage/
 frontend/coverage/
 
-# Docker Local Overrides
+# Docker Local Overrides & Data
 docker-compose.override.yml
-
-# Database / Storage Local Mounts
 *.sqlite3
 *.db
 pg_data/
-redis_data/
+postgres_data/
+
+# Jenkins Local Data
+ci/jenkins/jenkins_home/
+jenkins_home/
+jenkins_data/

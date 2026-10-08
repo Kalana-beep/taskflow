@@ -1,139 +1,179 @@
-# ApexStore
+# TaskFlow
 
-> **Enterprise-Grade Full-Stack E-Commerce & DevOps Showcase**  
-> A high-performance order and inventory management platform featuring a modern customer storefront, administrative operations dashboard, transactional FastAPI backend, Redis caching, and an automated Jenkins CI/CD pipeline.
+> **Simple Task Management Application & Advanced DevOps CI/CD Pipeline**
+> A full-stack task management platform built to showcase enterprise-grade continuous delivery automation: Python, FastAPI, PostgreSQL 16, SQLAlchemy 2.x, Alembic, Next.js, React, TypeScript, Docker, Docker Compose, Jenkins, Trivy, Gitleaks, and Docker Hub.
 
 ---
 
 ## 1. Project Overview
 
-**ApexStore** is built to demonstrate modern full-stack web engineering and enterprise DevOps best practices. It bridges customer-facing commerce experiences with warehouse inventory control and continuous delivery automation.
+TaskFlow is designed to keep domain logic simple, intuitive, and robust, while applying industry-standard DevOps engineering and CI/CD automation around the full software development lifecycle.
 
-### Key Objectives
-* **Modern Customer Storefront**: Responsive product browsing, instant search, faceted filtering, multi-image product showcases, shopping cart persistence, and end-to-end checkout.
-* **Administrative Operations**: Real-time inventory monitoring, low-stock alerts, atomic stock restock workflows, order fulfillment transitions, customer CRM, and sales analytics.
-* **Data Integrity & Concurrency**: Row-level locking on database transactions to guarantee stock consistency during simultaneous checkout spikes.
-* **Performance Caching**: Redis cache-aside caching for catalog queries, paired with automated cache invalidation upon inventory or product updates.
-* **DevOps Excellence**: Automated CI/CD with Jenkins, container security scanning (Trivy), Docker Hub registry publishing, and automated smoke testing.
+### Key Capabilities
+- **Simple & Intuitive Application:** Manage tasks through their lifecycle (`TODO` ➔ `IN_PROGRESS` ➔ `DONE`) with priority ratings (`LOW`, `MEDIUM`, `HIGH`).
+- **Interactive SaaS Dashboard:** Real-time metrics tracking total, in-progress, completed, and high-priority workloads.
+- **Enterprise Testing Pyramid:** Unit tests with SQLite in-memory, live PostgreSQL integration testing in ephemeral CI containers, and automated post-deployment smoke tests.
+- **Automated Security Gates:** Secret scanning with Gitleaks, dependency vulnerability audits with pip-audit and npm audit, and container CVE analysis with Trivy.
+- **Declarative CI/CD Pipeline:** Fully automated 17-stage Jenkins Declarative Pipeline featuring parallel quality gates, branch-aware deployment, and immutable image tagging via Git commit SHA.
 
 ---
 
 ## 2. Technology Stack
 
-| Layer | Technologies |
+| Layer | Technology |
 |---|---|
-| **Frontend** | [Next.js](https://nextjs.org/) (App Router), [TypeScript](https://www.typescriptlang.org/), [React](https://react.dev/), [Tailwind CSS](https://tailwindcss.com/), [Zustand](https://github.com/pmndrs/zustand), [Lucide Icons](https://lucide.dev/) |
-| **Backend** | [Python 3.11](https://www.python.org/), [FastAPI](https://fastapi.tiangolo.com/), [SQLAlchemy 2.0 (Async)](https://www.sqlalchemy.org/), [Pydantic v2](https://docs.pydantic.dev/), [Alembic](https://alembic.sqlalchemy.org/) |
-| **Data & Cache** | [PostgreSQL 16](https://www.postgresql.org/), [Redis 7](https://redis.io/) |
-| **Containers** | [Docker](https://www.docker.com/) (Multi-stage builds), [Docker Compose v2](https://docs.docker.com/compose/) |
-| **CI / CD** | [Jenkins](https://www.jenkins.io/) (Declarative Groovy Pipeline), [Docker Hub](https://hub.docker.com/), [GitHub](https://github.com/) |
-| **Testing & Quality** | Pytest, Vitest / React Testing Library, ESLint, TypeScript (`tsc`), Ruff |
+| **Frontend** | [Next.js 14](https://nextjs.org/) (App Router), [React 18](https://react.dev/), [TypeScript](https://www.typescriptlang.org/), [Tailwind CSS](https://tailwindcss.com/), [Lucide React](https://lucide.dev/) |
+| **Backend** | [Python 3.11+](https://www.python.org/), [FastAPI](https://fastapi.tiangolo.com/), [SQLAlchemy 2.0 (Async)](https://www.sqlalchemy.org/), [Pydantic v2](https://docs.pydantic.dev/), [Alembic](https://alembic.sqlalchemy.org/) |
+| **Database** | [PostgreSQL 16](https://www.postgresql.org/) with UUID primary keys, indexes, and connection pooling |
+| **Containers** | [Docker](https://www.docker.com/) (Multi-stage builds, non-root users), [Docker Compose v2](https://docs.docker.com/compose/) |
+| **CI / CD** | [Jenkins LTS](https://www.jenkins.io/) (Declarative Pipeline), [Docker Hub](https://hub.docker.com/) |
+| **Code Quality** | [Ruff](https://astral.sh/ruff), [ESLint](https://eslint.org/), TypeScript Strict Mode |
+| **Security Scanning** | [Gitleaks](https://github.com/gitleaks/gitleaks), [Trivy](https://github.com/aquasecurity/trivy), [pip-audit](https://github.com/pypa/pip-audit), `npm audit` |
+| **Testing** | [Pytest](https://pytest.org/), `pytest-asyncio`, `pytest-cov`, [Vitest](https://vitest.dev/), React Testing Library |
 
 ---
 
-## 3. Planned Architecture
-
-The platform uses a modular monolith topology for maximum developer velocity, reliability, and maintainability without distributed microservice complexity.
+## 3. Directory Structure
 
 ```
-+-----------------------------------------------------------------------+
-|                         Client Layer (Browser)                        |
-|             Customer Storefront    |    Admin Dashboard               |
-+----------------------------------+------------------------------------+
-                                   | HTTP / JSON (REST)
-                                   v
-+-----------------------------------------------------------------------+
-|                      Next.js Frontend Tier (:3000)                    |
-|      - App Router (SSR & Client Components)                           |
-|      - Zustand State (Cart & Auth)                                    |
-|      - Tailwind CSS Design System                                     |
-+----------------------------------+------------------------------------+
-                                   | REST Requests
-                                   v
-+-----------------------------------------------------------------------+
-|                      FastAPI Backend Tier (:8000)                     |
-|      - JWT Authentication & RBAC (Customer / Admin)                   |
-|      - Product Catalog & Category Services                            |
-|      - Atomic Inventory Engine (Row-Level Locking)                    |
-|      - Order Fulfillment & Checkout Processing                        |
-+-------------------+-------------------------------+-------------------+
-                    |                               |
-                    v                               v
-+---------------------------------------+   +---------------------------+
-|             PostgreSQL 16             |   |          Redis 7          |
-|    - ACID Relational Database         |   |    - Catalog Cache        |
-|    - Users, Orders, Inventory, Logs   |   |    - Invalidation Hooks   |
-+---------------------------------------+   +---------------------------+
-```
-
-*For complete architectural specifications, see [docs/architecture.md](docs/architecture.md).*
-
----
-
-## 4. Planned CI/CD Flow
-
-The delivery lifecycle is automated using a declarative `Jenkinsfile` in Groovy:
-
-```
-[GitHub Push]
-     │
-     ▼
-[Stage 1: Checkout SCM]
-     │
-     ▼
-[Stage 2: Code Quality & Linting] ─── Parallel: Ruff (Python) + ESLint / tsc (Next.js)
-     │
-     ▼
-[Stage 3: Automated Testing]     ─── Parallel: Pytest (Backend) + Component Tests (Frontend)
-     │
-     ▼
-[Stage 4: Multi-Stage Docker Build]
-     │
-     ▼
-[Stage 5: Security Vulnerability Scan] ─── Trivy Container Scanner
-     │
-     ▼
-[Stage 6: Docker Hub Publication]  ─── Tag with Build Number, Git SHA, and latest
-     │
-     ▼
-[Stage 7: Stack Deployment]        ─── Docker Compose (Postgres + Redis + Backend + Frontend)
-     │
-     ▼
-[Stage 8: Automated Smoke Tests]   ─── Verify /health probes, API catalog, and Storefront UI
+TaskFlow/
+│
+├── backend/                  # FastAPI backend service
+│   ├── app/
+│   │   ├── api/routes/       # Thin API route handlers (/health, /api/tasks)
+│   │   ├── core/             # Configuration & environment settings
+│   │   ├── db/               # Database engine, session, and metadata
+│   │   ├── models/           # SQLAlchemy 2.x ORM models (Task)
+│   │   ├── schemas/          # Pydantic v2 validation models
+│   │   ├── services/         # Encapsulated task business logic
+│   │   └── main.py           # FastAPI application entry point
+│   ├── tests/                # Pytest unit & integration test suites
+│   ├── alembic/              # Database migration versions
+│   ├── Dockerfile            # Multi-stage production container
+│   ├── requirements.txt      # Production runtime dependencies
+│   ├── requirements-dev.txt  # Testing, linting, & security packages
+│   └── pyproject.toml        # Ruff, Pytest, and Coverage configurations
+│
+├── frontend/                 # Next.js 14 modern React dashboard
+│   ├── app/                  # App router pages and global styles
+│   ├── components/           # Reusable UI components (Cards, Modals, Filters)
+│   ├── lib/                  # Reusable typed API client
+│   ├── types/                # TypeScript interface definitions
+│   ├── tests/                # Vitest & React Testing Library suites
+│   ├── Dockerfile            # Multi-stage production container
+│   ├── package.json          # Node dependencies & test scripts
+│   └── tsconfig.json         # Strict TypeScript compiler options
+│
+├── scripts/
+│   └── smoke_test.py         # End-to-end post-deployment smoke test runner
+│
+├── ci/
+│   └── jenkins/              # Local Jenkins master/agent container setup
+│       ├── Dockerfile        # Jenkins LTS with Docker CLI, Compose, Trivy, Gitleaks
+│       ├── docker-compose.yml# Jenkins orchestration and host socket mount
+│       └── README.md         # Jenkins setup and credentials instructions
+│
+├── docs/                     # Technical specifications and guides
+│   ├── architecture.md       # System design and component interactions
+│   ├── local-development.md  # Local setup commands and workflows
+│   ├── testing.md            # Testing pyramid and coverage standards
+│   ├── pipeline.md           # CI/CD pipeline stage explanations
+│   └── jenkins.md            # Jenkins execution and troubleshooting
+│
+├── docker-compose.yml        # Production / local multi-container stack
+├── docker-compose.ci.yml     # Isolated ephemeral CI integration environment
+├── Jenkinsfile               # Declarative CI/CD pipeline script
+├── .env.example              # Environment variables template
+├── .gitignore                # Exclusion rules for secrets, venvs, artifacts
+└── README.md                 # Primary project documentation
 ```
 
 ---
 
-## 5. Repository Structure
+## 4. Quickstart Guide
 
+### 4.1 Running with Docker Compose
+
+Start the full stack with a single command:
+
+```bash
+docker compose up -d --build
 ```
-apexstore/
-├── frontend/             # Next.js App Router application
-├── backend/              # FastAPI application, SQLAlchemy models, API routers
-├── devops/               # Jenkinsfile, CI/CD scripts, and deployment configs
-├── scripts/              # Utility scripts for local setup, seeding, and smoke tests
-├── docs/                 # System architecture, schemas, and roadmaps
-│   ├── architecture.md
-│   └── development-roadmap.md
-├── .env.example          # Environment variable template (placeholders only)
-├── .gitignore            # Git exclusion rules for Node, Python, Docker, OS
-├── README.md             # Project documentation and guide
-└── docker-compose.yml    # Local multi-container orchestration configuration
+
+#### Application Endpoints
+- **Frontend Dashboard:** [http://localhost:3000](http://localhost:3000)
+- **Backend Swagger UI:** [http://localhost:8000/docs](http://localhost:8000/docs)
+- **Backend ReDoc:** [http://localhost:8000/redoc](http://localhost:8000/redoc)
+- **Health Check Probe:** [http://localhost:8000/health](http://localhost:8000/health)
+
+#### Stopping Services
+```bash
+docker compose down
+```
+
+### 4.2 Running Smoke Tests Locally
+
+```bash
+python scripts/smoke_test.py --base-url http://localhost:8000
 ```
 
 ---
 
-## 6. Current Development Status
+## 5. CI/CD Pipeline Workflow
 
-* **Current Phase**: `Phase 0: Workspace Scaffolding & Git Foundation` (COMPLETED)
-* **Next Phase**: `Phase 1: Database Architecture & Core Data Models`
-
-*For the complete 8-phase implementation roadmap, consult [docs/development-roadmap.md](docs/development-roadmap.md).*
+```
+GitHub Push
+   │
+   ▼
+Jenkins Agent
+   │
+   ├─► 1. Checkout & Git SHA Extraction
+   ├─► 2. Tool Validation (Python, Node, Docker, Compose)
+   ├─► 3. Install Dependencies (Backend requirements, frontend npm ci)
+   │
+   ├─► 4. Parallel Quality Checks
+   │      ├── Backend Ruff Linter
+   │      ├── Backend Unit Tests (Pytest)
+   │      ├── Frontend ESLint
+   │      ├── Frontend TypeScript Check (tsc --noEmit)
+   │      └── Frontend Component Tests (Vitest)
+   │
+   ├─► 5. Coverage Gate (Pytest --cov >= 80%)
+   ├─► 6. Dependency Security (pip-audit & npm audit)
+   ├─► 7. Secret Scan (Gitleaks)
+   │
+   ├─► 8. Integration Environment (docker compose -f docker-compose.ci.yml up -d)
+   ├─► 9. Integration Tests (Real PostgreSQL CRUD verification)
+   │
+   ├─► 10. Application Build (Next.js bundle & backend import check)
+   ├─► 11. Docker Build (taskflow-backend:<git-sha>, taskflow-frontend:<git-sha>)
+   ├─► 12. Trivy Scan (Container CVE gate)
+   │
+   ├─► 13. Docker Hub Push (Branch: main only, uses DOCKERHUB_CREDENTIALS)
+   ├─► 14. Deployment (Docker Compose with SHA image)
+   ├─► 15. Health Checks (/health & Frontend HTTP)
+   ├─► 16. Smoke Tests (scripts/smoke_test.py)
+   │
+   └─► 17. Post Cleanup & Report Archiving (JUnit XML, coverage.xml)
+```
 
 ---
 
-## 7. Getting Started (Phase 0)
+## 6. Branch Strategy
 
-1. Review configuration parameters in `.env.example`.
-2. Inspect architectural blueprints in `docs/architecture.md`.
-3. Track phase deliverables in `docs/development-roadmap.md`.
+- **Feature Branches (`feat/*`, `fix/*`):**
+  - Triggers complete validation: dependencies, linting, unit tests, coverage, security scans, integration tests, and Docker builds.
+  - Releases and production deployments are **not triggered**.
+- **Main Branch (`main`):**
+  - Runs full validation pipeline.
+  - Pushes immutable `<git-sha>` and `latest` tags to Docker Hub.
+  - Automatically deploys the stack, verifies health endpoints, and executes smoke tests.
+
+---
+
+## 7. Security Best Practices
+
+1. **No Hardcoded Secrets:** Passwords, tokens, and database credentials are strictly injected via environment variables.
+2. **Pre-commit & CI Secret Gates:** Gitleaks scans the entire commit history for leaked API keys and passwords.
+3. **Multi-Stage Container Hardening:** Containers run as non-privileged users (`appuser`, `nextjs`) without build compilers or secrets.
+4. **Automated Vulnerability Management:** Dependency trees (pip-audit, npm audit) and base images (Trivy) are scanned on every build.
